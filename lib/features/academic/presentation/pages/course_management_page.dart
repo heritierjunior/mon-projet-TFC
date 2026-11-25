@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:istm_mahagi/core/constants/app_colors.dart';
 import 'package:istm_mahagi/core/utils/responsive.dart';
 import '../providers/academic_providers.dart';
 import '../../domain/entities/cours_entity.dart';
@@ -23,11 +22,14 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
   String? _selectedPromoId;
   String? _selectedEnsId;
   String _selectedSemestre = 'S1';
+  String? _filterPromoId; // Filter for course list
   bool _isSaving = false;
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate() || _selectedPromoId == null || _selectedEnsId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Veuillez remplir tous les champs."), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Veuillez remplir la promotion et l'enseignant titulaire."), backgroundColor: Colors.orange),
+      );
       return;
     }
 
@@ -44,7 +46,9 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cours ajouté avec succès !"), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Enseignement créé et lié à la promotion !"), backgroundColor: Colors.green),
+        );
         _codeController.clear();
         _intituleController.clear();
         _creditsController.clear();
@@ -60,16 +64,17 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Text('Supprimer définitivement le cours "${course.intituleCours}" ?'),
+        title: const Text('Supprimer l\'enseignement ?'),
+        content: Text('Voulez-vous supprimer définitivement "${course.intituleCours}" ?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('ANNULER')),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () async {
               await ref.read(academicRepositoryProvider).deleteCourse(course.id);
               if (mounted) Navigator.pop(context);
             }, 
-            child: const Text('SUPPRIMER', style: TextStyle(color: Colors.red))
+            child: const Text('SUPPRIMER', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -90,14 +95,14 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text("Modifier le Cours", style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text("Modifier l'Enseignement", style: TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: "Code UE")),
+                TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: "Code UE (ex: LMD101)")),
                 const SizedBox(height: 10),
-                TextField(controller: intituleCtrl, decoration: const InputDecoration(labelText: "Intitulé de l'EC")),
+                TextField(controller: intituleCtrl, decoration: const InputDecoration(labelText: "Intitulé du Cours (EC)")),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -121,7 +126,10 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                   value: selectedPromo,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: "Promotion Cible"),
-                  items: promos.map((p) => DropdownMenuItem<String>(value: p['stableId'].toString(), child: Text(p['label'], style: const TextStyle(fontSize: 12)))).toList(),
+                  items: promos.map((p) => DropdownMenuItem<String>(
+                    value: p['stableId'].toString(), 
+                    child: Text(p['label'], style: const TextStyle(fontSize: 12)),
+                  )).toList(),
                   onChanged: (v) => setModalState(() => selectedPromo = v),
                 ),
                 const SizedBox(height: 10),
@@ -129,7 +137,10 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                   value: selectedEns,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: "Enseignant Titulaire"),
-                  items: teachers.map((t) => DropdownMenuItem<String>(value: t.id, child: Text("${t.nomEns} ${t.postnomEns}"))).toList(),
+                  items: teachers.map((t) => DropdownMenuItem<String>(
+                    value: t.id, 
+                    child: Text("${t.nomEns} ${t.postnomEns}"),
+                  )).toList(),
                   onChanged: (v) => setModalState(() => selectedEns = v),
                 ),
               ],
@@ -151,7 +162,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                 });
                 if (mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cours modifié avec succès !"), backgroundColor: Colors.green));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Enseignement mis à jour !"), backgroundColor: Colors.green));
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A), foregroundColor: Colors.white),
@@ -171,7 +182,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     final currentYearAsync = ref.watch(currentAcademicYearProvider);
     final bool isMobile = Responsive.isMobile(context);
 
-    // Initialisation de l'année courante si vide
+    // Initialisation de l'année courante
     currentYearAsync.whenData((year) {
       if (_yearController.text.isEmpty) {
         _yearController.text = year;
@@ -179,17 +190,21 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('GESTION DU PROGRAMME ACADÉMIQUE', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 16)),
-        backgroundColor: Colors.white,
-        elevation: 1,
+        title: const Text(
+          'GESTION DU PROGRAMME ACADÉMIQUE',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 16, color: Colors.white, fontFamily: 'Playfair Display'),
+        ),
+        backgroundColor: const Color(0xFF2D3E50),
+        elevation: 2,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(35),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 15 : 30, vertical: 30),
         child: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 1200),
+            constraints: const BoxConstraints(maxWidth: 1280),
             child: Responsive(
               mobile: Column(
                 children: [
@@ -202,7 +217,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(flex: 2, child: _buildFormCard(promosWithDetailsAsync, teachersAsync)),
-                  const SizedBox(width: 35),
+                  const SizedBox(width: 30),
                   Expanded(flex: 3, child: _buildListCard(coursesAsync, promosWithDetailsAsync, teachersAsync, false)),
                 ],
               ),
@@ -215,21 +230,40 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
 
   Widget _buildFormCard(AsyncValue promosAsync, AsyncValue teachersAsync) {
     return Container(
-      padding: const EdgeInsets.all(35),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 30)],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6))],
       ),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("NOUVEAU COURS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A))),
-            const SizedBox(height: 30),
+            Row(
+              children: const [
+                Icon(Icons.library_books_rounded, color: AppColors.primaryBlue, size: 22),
+                SizedBox(width: 10),
+                Text("NOUVEL ENSEIGNEMENT (UE / EC)", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.textMain)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                "Sélectionnez la promotion cible (ex: L1 LABO) et le titulaire pour associer le cours à l'emploi du temps.",
+                style: TextStyle(color: AppColors.primaryBlue, fontSize: 12, height: 1.4, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(height: 25),
             _buildInput(_codeController, "Code UE (ex: LMD101)", Icons.qr_code_rounded),
-            _buildInput(_intituleController, "Intitulé de l'EC", Icons.book_rounded),
+            _buildInput(_intituleController, "Intitulé du Cours (EC)", Icons.book_rounded),
             Row(
               children: [
                 Expanded(child: _buildInput(_creditsController, "Crédits", Icons.star_outline_rounded, isNumber: true)),
@@ -241,8 +275,8 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
             _buildDropdown(
               "Semestre",
               const [
-                DropdownMenuItem(value: 'S1', child: Text("Semestre 1", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                DropdownMenuItem(value: 'S2', child: Text("Semestre 2", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                DropdownMenuItem(value: 'S1', child: Text("Semestre 1 (S1)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                DropdownMenuItem(value: 'S2', child: Text("Semestre 2 (S2)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
               ],
               _selectedSemestre,
               (v) => setState(() => _selectedSemestre = v!),
@@ -250,37 +284,46 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
             const SizedBox(height: 15),
             promosAsync.when(
               data: (list) => _buildDropdown(
-                "Promotion Cible", 
-                list.map<DropdownMenuItem<String>>((p) => DropdownMenuItem(value: p['stableId'].toString(), child: Text(p['label'], style: const TextStyle(fontSize: 12)))).toList(),
+                "Promotion Cible (ex: L1 LABO)", 
+                list.map<DropdownMenuItem<String>>((p) => DropdownMenuItem(
+                  value: p['stableId'].toString(), 
+                  child: Text(p['label'], style: const TextStyle(fontSize: 12)),
+                )).toList(),
                 _selectedPromoId,
                 (v) => setState(() => _selectedPromoId = v)
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const Text("Err promos"),
+              error: (_, __) => const Text("Erreur promotions"),
             ),
             const SizedBox(height: 15),
             teachersAsync.when(
               data: (list) => _buildDropdown(
                 "Enseignant Titulaire", 
-                list.map<DropdownMenuItem<String>>((EnseignantEntity t) => DropdownMenuItem(value: t.id, child: Text("${t.nomEns} ${t.postnomEns}"))).toList(),
+                list.map<DropdownMenuItem<String>>((EnseignantEntity t) => DropdownMenuItem(
+                  value: t.id, 
+                  child: Text("${t.nomEns} ${t.postnomEns}", style: const TextStyle(fontSize: 12)),
+                )).toList(),
                 _selectedEnsId,
                 (v) => setState(() => _selectedEnsId = v)
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const Text("Err enseignants"),
+              error: (_, __) => const Text("Erreur enseignants"),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
+              height: 50,
+              child: ElevatedButton.icon(
                 onPressed: _isSaving ? null : _submitForm,
+                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                label: _isSaving
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("AJOUTER AU PROGRAMME", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  backgroundColor: const Color(0xFF0088FF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 3,
                 ),
-                child: _isSaving ? const CircularProgressIndicator(color: Colors.white) : const Text("AJOUTER AU PROGRAMME", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
               ),
             ),
           ],
@@ -296,57 +339,121 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 30)],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(35),
-            child: Text("LISTE DES ENSEIGNEMENTS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A))),
+          Padding(
+            padding: const EdgeInsets.all(25),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("PROGRAMME DE COURS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.textMain)),
+                // Filter Dropdown
+                if (promosList.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: _filterPromoId,
+                        hint: const Text('Toutes les promotions', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textMain, fontWeight: FontWeight.bold),
+                        items: [
+                          const DropdownMenuItem<String?>(value: null, child: Text('Toutes les promotions')),
+                          ...promosList.map((p) => DropdownMenuItem<String?>(
+                            value: p['stableId'].toString(),
+                            child: Text(p['label']),
+                          )),
+                        ],
+                        onChanged: (val) => setState(() => _filterPromoId = val),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           coursesAsync.when(
-            data: (list) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: MaterialStateProperty.all(const Color(0xFFF8FAFC)),
-                columns: const [
-                  DataColumn(label: Text('CODE')),
-                  DataColumn(label: Text('INTITULÉ')),
-                  DataColumn(label: Text('CRÉDITS')),
-                  DataColumn(label: Text('SEMESTRE')),
-                  DataColumn(label: Text('ANNÉE')),
-                  DataColumn(label: Text('ACTIONS')),
-                ],
-                rows: list.map((c) => DataRow(
-                  cells: [
-                    DataCell(Text(c.codeCours, style: const TextStyle(fontWeight: FontWeight.bold))),
-                    DataCell(Text(c.intituleCours)),
-                    DataCell(Text(c.credits.toString())),
-                    DataCell(Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: c.semestre == 'S2' ? Colors.purple.withOpacity(0.1) : Colors.teal.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        c.semestre == 'S2' ? 'Semestre 2' : 'Semestre 1', 
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: c.semestre == 'S2' ? Colors.purple : Colors.teal),
-                      ),
-                    )),
-                    DataCell(Text(c.anneeAcad ?? '-', style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11))),
-                    DataCell(Row(
-                      children: [
-                        IconButton(icon: const Icon(Icons.edit_note_rounded, color: Colors.blue), onPressed: () => _showEditCourseDialog(c, promosList, teachersList)),
-                        IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent), onPressed: () => _confirmDelete(c)),
-                      ],
-                    )),
+            data: (list) {
+              final filteredList = list.where((c) {
+                if (_filterPromoId == null) return true;
+                return c.idPromo == _filterPromoId || c.idPromo.toLowerCase() == _filterPromoId!.toLowerCase();
+              }).toList();
+
+              if (filteredList.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Center(
+                    child: Text('Aucun cours trouvé pour le filtre sélectionné.', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(const Color(0xFFF8FAFC)),
+                  columns: const [
+                    DataColumn(label: Text('CODE')),
+                    DataColumn(label: Text('INTITULÉ')),
+                    DataColumn(label: Text('PROMOTION')),
+                    DataColumn(label: Text('CRÉDITS')),
+                    DataColumn(label: Text('SEMESTRE')),
+                    DataColumn(label: Text('ACTIONS')),
                   ],
-                )).toList(),
-              ),
-            ),
-            loading: () => const Center(child: CircularProgressIndicator()),
+                  rows: filteredList.map((c) {
+                    final promoObj = promosList.firstWhere(
+                      (p) => p['stableId'].toString() == c.idPromo || p['id'].toString() == c.idPromo,
+                      orElse: () => {'label': c.idPromo},
+                    );
+
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(c.codeCours, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain))),
+                        DataCell(Text(c.intituleCours)),
+                        DataCell(Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            promoObj['label'].toString(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primaryBlue),
+                          ),
+                        )),
+                        DataCell(Text(c.credits.toString())),
+                        DataCell(Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: c.semestre == 'S2' ? Colors.purple.withOpacity(0.1) : Colors.teal.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            c.semestre == 'S2' ? 'S2' : 'S1', 
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: c.semestre == 'S2' ? Colors.purple : Colors.teal),
+                          ),
+                        )),
+                        DataCell(Row(
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue), onPressed: () => _showEditCourseDialog(c, promosList, teachersList)),
+                            IconButton(icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent), onPressed: () => _confirmDelete(c)),
+                          ],
+                        )),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+            loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
             error: (e, _) => Text("Err: $e"),
           ),
           const SizedBox(height: 20),
@@ -362,12 +469,18 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         validator: (v) => v!.isEmpty ? "Requis" : null,
+        style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, size: 20, color: Colors.grey),
+          labelText: hint,
+          prefixIcon: Icon(icon, size: 18, color: Colors.grey),
           filled: true,
           fillColor: const Color(0xFFF8FAFC),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
       ),
     );
@@ -375,12 +488,16 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
 
   Widget _buildDropdown(String hint, List<DropdownMenuItem<String>> items, String? value, Function(String?) onChanged) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
-          hint: Text(hint, style: const TextStyle(fontSize: 14)),
+          hint: Text(hint, style: const TextStyle(fontSize: 13, color: Colors.grey)),
           value: value,
           items: items,
           onChanged: onChanged,
