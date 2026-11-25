@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:istm_mahagi/core/constants/app_colors.dart';
+import 'package:istm_mahagi/core/utils/responsive.dart';
 import 'package:istm_mahagi/core/widgets/premium_fade_in.dart';
 import 'package:istm_mahagi/features/info/presentation/providers/info_providers.dart';
 import 'package:istm_mahagi/features/info/domain/entities/calendar_event_entity.dart';
 import 'package:istm_mahagi/features/auth/presentation/providers/auth_provider.dart';
+import 'package:istm_mahagi/features/auth/domain/entities/admin_entity.dart';
+import 'package:istm_mahagi/features/auth/domain/entities/staff_entity.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
@@ -34,8 +37,8 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   Widget build(BuildContext context) {
     final calendarAsync = ref.watch(calendarEventsProvider);
     final isMobile = Responsive.isMobile(context);
-    final authState = ref.watch(authNotifierProvider);
-    final bool isAdmin = authState.userRole == 'Admin' || authState.userRole == 'Décanat' || authState.userRole == 'Staff';
+    final userEntity = ref.watch(authEntityProvider);
+    final bool isAdmin = userEntity is AdminEntity || userEntity is StaffEntity;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -770,7 +773,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulWidget(
+      builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
