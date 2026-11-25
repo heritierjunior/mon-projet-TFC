@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:istm_mahagi/core/constants/app_colors.dart';
 import 'package:istm_mahagi/core/utils/responsive.dart';
-import 'package:istm_mahagi/core/widgets/premium_fade_in.dart';
 import '../providers/info_providers.dart';
 import '../../domain/entities/history_entity.dart';
 
@@ -30,23 +29,44 @@ class _HistoryManagementPageState extends ConsumerState<HistoryManagementPage> {
 
     try {
       await ref.read(infoRepositoryProvider).updateHistory(history);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Historique synchronisé !"), backgroundColor: Colors.green));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Historique synchronisé et publié en ligne !"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(historyProvider);
+    final isMobile = Responsive.isMobile(context);
 
     return Scaffold(
-      backgroundColor: AppColors.deepNavy,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('CMS : HISTORIQUE', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.premiumGold, fontFamily: 'Playfair Display')),
-        backgroundColor: AppColors.deepNavy,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.premiumGold),
+        title: const Text(
+          'CMS : HISTORIQUE INSTITUTIONNEL',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            color: Colors.white,
+            fontFamily: 'Playfair Display',
+            letterSpacing: 1,
+          ),
+        ),
+        backgroundColor: const Color(0xFF2D3E50),
+        elevation: 2,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: historyAsync.when(
         data: (history) {
@@ -56,42 +76,113 @@ class _HistoryManagementPageState extends ConsumerState<HistoryManagementPage> {
             _contentController.text = history.contenu;
           }
           return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: Responsive.getPadding(context), vertical: 30),
-            child: Column(
-              children: [
-                _buildForm(),
-                const SizedBox(height: 50),
-                if (history != null) _buildCurrentVersionPreview(history),
-              ],
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 15 : 40,
+              vertical: 30,
+            ),
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildForm(),
+                    const SizedBox(height: 30),
+                    if (history != null) _buildCurrentVersionPreview(history),
+                  ],
+                ),
+              ),
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.premiumGold)),
-        error: (e, _) => Center(child: Text("Erreur : $e")),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue)),
+        error: (e, _) => Center(child: Text("Erreur : $e", style: const TextStyle(color: Colors.redAccent))),
       ),
     );
   }
 
   Widget _buildForm() {
     return Container(
-      padding: const EdgeInsets.all(35),
-      decoration: BoxDecoration(color: const Color(0xFF112240), borderRadius: BorderRadius.circular(30), border: Border.all(color: AppColors.premiumGold.withOpacity(0.1))),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("MISE À JOUR DU RÉCIT", style: TextStyle(color: AppColors.premiumGold, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 2)),
+          Row(
+            children: const [
+              Icon(Icons.history_edu_rounded, color: AppColors.primaryBlue, size: 24),
+              SizedBox(width: 10),
+              Text(
+                "MISE À JOUR DE L'HISTORIQUE",
+                style: TextStyle(
+                  color: AppColors.textMain,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 25),
-          _buildInput(_titleController, "Titre de la section"),
-          const SizedBox(height: 15),
-          _buildInput(_contentController, "Récit complet...", maxLines: 10),
-          const SizedBox(height: 30),
+          TextField(
+            controller: _titleController,
+            style: const TextStyle(color: AppColors.textMain, fontSize: 14),
+            decoration: InputDecoration(
+              labelText: 'Titre de la section',
+              hintText: 'ex: Origine et Fondations de l\'ISTM Mahagi',
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _contentController,
+            maxLines: 12,
+            style: const TextStyle(color: AppColors.textMain, fontSize: 14, height: 1.5),
+            decoration: InputDecoration(
+              labelText: 'Récit Historique Complet',
+              hintText: 'Saisissez l\'histoire officielle de l\'établissement...',
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 25),
           SizedBox(
             width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
+            height: 52,
+            child: ElevatedButton.icon(
               onPressed: _save,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.premiumGold, foregroundColor: AppColors.deepNavy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-              child: const Text('PUBLIER LES MODIFICATIONS', style: TextStyle(fontWeight: FontWeight.w900)),
+              icon: const Icon(Icons.cloud_upload_rounded, color: Colors.white, size: 20),
+              label: const Text(
+                'ENREGISTRER ET PUBLIER',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0088FF),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 4,
+              ),
             ),
           ),
         ],
@@ -99,32 +190,61 @@ class _HistoryManagementPageState extends ConsumerState<HistoryManagementPage> {
     );
   }
 
-  Widget _buildInput(TextEditingController controller, String hint, {int maxLines = 1}) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        filled: true, fillColor: AppColors.deepNavy,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        hintText: hint, hintStyle: const TextStyle(color: Colors.white24, fontSize: 14),
-      ),
-    );
-  }
-
   Widget _buildCurrentVersionPreview(HistoryEntity h) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(30),
-      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("VERSION ACTUELLE EN LIGNE", style: TextStyle(color: Colors.white38, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 2)),
-          const SizedBox(height: 20),
-          Text(h.titre, style: const TextStyle(color: AppColors.premiumGold, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          Text(h.contenu, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.5)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    CircleAvatar(radius: 3, backgroundColor: Colors.green),
+                    SizedBox(width: 6),
+                    Text('EN LIGNE', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Aperçu de la version actuelle',
+                style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Text(
+            h.titre,
+            style: const TextStyle(color: AppColors.textMain, fontWeight: FontWeight.bold, fontSize: 15, fontFamily: 'Playfair Display'),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            h.contenu,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+          ),
         ],
       ),
     );
