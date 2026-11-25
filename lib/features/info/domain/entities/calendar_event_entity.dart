@@ -6,6 +6,7 @@ class CalendarEventEntity {
   final String descriptionEvent;
   final DateTime dateDebut;
   final DateTime dateFin;
+  final String anneeAcad;
 
   CalendarEventEntity({
     required this.id,
@@ -13,6 +14,7 @@ class CalendarEventEntity {
     required this.descriptionEvent,
     required this.dateDebut,
     required this.dateFin,
+    this.anneeAcad = '2025-2026',
   });
 
   factory CalendarEventEntity.fromMap(Map<String, dynamic> map, String id) {
@@ -22,6 +24,17 @@ class CalendarEventEntity {
       descriptionEvent: map['description_event'] ?? '',
       dateDebut: (map['date_debut'] as Timestamp?)?.toDate() ?? DateTime.now(),
       dateFin: (map['date_fin'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      anneeAcad: map['annee_acad'] ?? '2025-2026',
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'titre_event': titreEvent,
+      'description_event': descriptionEvent,
+      'date_debut': Timestamp.fromDate(dateDebut),
+      'date_fin': Timestamp.fromDate(dateFin),
+      'annee_acad': anneeAcad,
+    };
   }
 }

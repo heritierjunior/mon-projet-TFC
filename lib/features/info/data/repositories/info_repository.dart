@@ -70,12 +70,7 @@ class InfoRepository {
   }
 
   Future<void> addCalendarEvent(CalendarEventEntity event) {
-    return _firestore.collection('calendrier').add({
-      'titre_event': event.titreEvent,
-      'description_event': event.descriptionEvent,
-      'date_debut': Timestamp.fromDate(event.dateDebut),
-      'date_fin': Timestamp.fromDate(event.dateFin),
-    });
+    return _firestore.collection('calendrier').add(event.toMap());
   }
 
   Future<void> deleteCalendarEvent(String id) {
