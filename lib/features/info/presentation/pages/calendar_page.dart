@@ -210,10 +210,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   Widget _buildFilterBar(bool isMobile) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 15 : 30, vertical: 20),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: const BoxDecoration(
+        color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
       ),
       child: Center(
