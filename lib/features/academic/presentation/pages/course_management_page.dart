@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:istm_mahagi/core/constants/app_colors.dart';
 import 'package:istm_mahagi/core/utils/responsive.dart';
 import '../providers/academic_providers.dart';
 import '../../domain/entities/cours_entity.dart';
@@ -243,9 +244,9 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
+              children: [
                 Icon(Icons.library_books_rounded, color: AppColors.primaryBlue, size: 22),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Text("NOUVEL ENSEIGNEMENT (UE / EC)", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.textMain)),
               ],
             ),
@@ -256,7 +257,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                 color: AppColors.primaryBlue.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 "Sélectionnez la promotion cible (ex: L1 LABO) et le titulaire pour associer le cours à l'emploi du temps.",
                 style: TextStyle(color: AppColors.primaryBlue, fontSize: 12, height: 1.4, fontWeight: FontWeight.w500),
               ),
@@ -351,7 +352,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("PROGRAMME DE COURS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.textMain)),
+                Text("PROGRAMME DE COURS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.textMain)),
                 // Filter Dropdown
                 if (promosList.isNotEmpty)
                   Container(
@@ -365,7 +366,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                       child: DropdownButton<String?>(
                         value: _filterPromoId,
                         hint: const Text('Toutes les promotions', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMain, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 12, color: AppColors.textMain, fontWeight: FontWeight.bold),
                         items: [
                           const DropdownMenuItem<String?>(value: null, child: Text('Toutes les promotions')),
                           ...promosList.map((p) => DropdownMenuItem<String?>(
@@ -388,8 +389,8 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
               }).toList();
 
               if (filteredList.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(40),
+                return Padding(
+                  padding: const EdgeInsets.all(40),
                   child: Center(
                     child: Text('Aucun cours trouvé pour le filtre sélectionné.', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
                   ),
@@ -416,7 +417,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
 
                     return DataRow(
                       cells: [
-                        DataCell(Text(c.codeCours, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain))),
+                        DataCell(Text(c.codeCours, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain))),
                         DataCell(Text(c.intituleCours)),
                         DataCell(Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -426,7 +427,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                           ),
                           child: Text(
                             promoObj['label'].toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primaryBlue),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primaryBlue),
                           ),
                         )),
                         DataCell(Text(c.credits.toString())),
@@ -443,7 +444,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                         )),
                         DataCell(Row(
                           children: [
-                            IconButton(icon: const Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue), onPressed: () => _showEditCourseDialog(c, promosList, teachersList)),
+                            IconButton(icon: Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue), onPressed: () => _showEditCourseDialog(c, promosList, teachersList)),
                             IconButton(icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent), onPressed: () => _confirmDelete(c)),
                           ],
                         )),
