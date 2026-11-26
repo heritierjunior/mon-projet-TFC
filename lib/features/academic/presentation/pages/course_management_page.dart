@@ -236,7 +236,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6))],
+        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
       ),
       child: Form(
         key: _formKey,
@@ -254,7 +254,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.08),
+                color: AppColors.primaryBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -342,7 +342,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6))],
+        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +434,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
                         DataCell(Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: c.semestre == 'S2' ? Colors.purple.withOpacity(0.1) : Colors.teal.withOpacity(0.1),
+                            color: c.semestre == 'S2' ? Colors.purple.withValues(alpha: 0.1) : Colors.teal.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
